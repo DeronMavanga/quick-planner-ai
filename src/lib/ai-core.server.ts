@@ -81,7 +81,7 @@ const planSchema = z.object({
 export async function runEmail(input: {
   instructions: string;
   tone: Tone;
-  recipient?: string;
+  recipient?: string | undefined;
 }): Promise<EmailResult> {
   return run(
     emailSchema,
@@ -104,7 +104,7 @@ Keep each bullet to one scannable sentence.`,
   );
 }
 
-export async function runPlan(goals: string, horizon?: string): Promise<PlanResult> {
+export async function runPlan(goals: string, horizon?: string | undefined): Promise<PlanResult> {
   const today = new Date().toISOString().slice(0, 10);
   return run(
     planSchema,

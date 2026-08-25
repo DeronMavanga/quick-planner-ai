@@ -23,7 +23,11 @@ function gateway() {
   });
 }
 
-async function run<T>(schema: z.ZodType<T>, system: string, prompt: string): Promise<T> {
+async function run<S extends z.ZodTypeAny>(
+  schema: S,
+  system: string,
+  prompt: string,
+): Promise<z.infer<S>> {
   const provider = gateway();
   try {
     const result = await generateText({
@@ -32,11 +36,11 @@ async function run<T>(schema: z.ZodType<T>, system: string, prompt: string): Pro
       prompt,
       output: Output.object({ schema }),
     });
-    return result.output as T;
+    return result.output as z.infer<S>;
   } catch (error) {
     if (NoObjectGeneratedError.isInstance(error) && error.text) {
       const match = error.text.match(/\{[\s\S]*\}/);
-      if (match) return schema.parse(JSON.parse(match[0]));
+      if (match) return schema.parse(JSON.parse(match[0])) as z.infer<S>;
     }
     throw error;
   }

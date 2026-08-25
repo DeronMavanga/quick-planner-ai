@@ -11,7 +11,7 @@ Rules:
 - Never invent facts, names, deadlines, decisions or commitments that are not in the input.
 - Preserve the user's original intent and improve grammar and clarity.
 - If essential information is missing, say so explicitly in the dedicated field instead of guessing.
-- Leave a field as an empty string or empty array when the input does not support it.`;
+- Always return EVERY field of the requested JSON shape. Use an empty string or an empty array when the input does not support a field; never omit a key.`;
 
 function gateway() {
   const apiKey = process.env["LOVABLE_API_KEY"];
@@ -42,40 +42,49 @@ async function run<T>(schema: z.ZodType<T>, system: string, prompt: string): Pro
   }
 }
 
+const str = z.string().optional().default("");
+const list = z.array(z.string()).optional().default([]);
+
 const emailSchema = z.object({
-  subject: z.string(),
-  body: z.string(),
-  shortVersion: z.string(),
-  missingInfo: z.array(z.string()),
+  subject: str,
+  body: str,
+  shortVersion: str,
+  missingInfo: list,
 });
 
 const summarySchema = z.object({
-  keyPoints: z.array(z.string()),
-  decisions: z.array(z.string()),
-  actionItems: z.array(
-    z.object({
-      task: z.string(),
-      owner: z.string(),
-      deadline: z.string(),
-      priority: z.enum(["high", "medium", "low"]),
-    }),
-  ),
-  deadlines: z.array(z.string()),
-  openQuestions: z.array(z.string()),
+  keyPoints: list,
+  decisions: list,
+  actionItems: z
+    .array(
+      z.object({
+        task: str,
+        owner: str,
+        deadline: str,
+        priority: z.enum(["high", "medium", "low"]).optional().default("medium"),
+      }),
+    )
+    .optional()
+    .default([]),
+  deadlines: list,
+  openQuestions: list,
 });
 
 const planSchema = z.object({
-  tasks: z.array(
-    z.object({
-      title: z.string(),
-      detail: z.string(),
-      due: z.string(),
-      priority: z.enum(["high", "medium", "low"]),
-      estimate: z.string(),
-    }),
-  ),
-  schedule: z.array(z.object({ when: z.string(), focus: z.string() })),
-  clarifyingQuestions: z.array(z.string()),
+  tasks: z
+    .array(
+      z.object({
+        title: str,
+        detail: str,
+        due: str,
+        priority: z.enum(["high", "medium", "low"]).optional().default("medium"),
+        estimate: str,
+      }),
+    )
+    .optional()
+    .default([]),
+  schedule: z.array(z.object({ when: str, focus: str })).optional().default([]),
+  clarifyingQuestions: list,
 });
 
 export async function runEmail(input: {

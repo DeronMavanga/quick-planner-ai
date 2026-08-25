@@ -105,10 +105,15 @@ missingInfo: only genuinely essential facts the user must supply.`,
 export async function runSummary(notes: string): Promise<SummaryResult> {
   return run(
     summarySchema,
-    `Summarize the meeting notes/transcript. Extract key discussion points, decisions,
-action items (owner only if a person is explicitly named, otherwise empty string;
-deadline only if explicitly stated, otherwise empty string), deadlines, and unresolved questions.
+    `Summarize the meeting notes/transcript. Return ALL of these keys, every time:
+- keyPoints: the main discussion points (always populate when there is any content).
+- decisions: things that were explicitly decided.
+- actionItems: every task someone is expected to do. owner only if a person is explicitly named,
+  otherwise ""; deadline only if explicitly stated, otherwise "".
+- deadlines: any dates or timeframes stated.
+- openQuestions: unresolved questions.
 Keep each bullet to one scannable sentence.`,
+
     notes,
   );
 }

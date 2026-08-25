@@ -1,5 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { streamText, Output, NoObjectGeneratedError } from "ai";
+import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import type { EmailResult, PlanResult, SummaryResult, Tone } from "./ai-schemas";
 
@@ -26,13 +26,13 @@ function gateway() {
 async function run<T>(schema: z.ZodType<T>, system: string, prompt: string): Promise<T> {
   const provider = gateway();
   try {
-    const result = streamText({
+    const result = await generateText({
       model: provider(MODEL),
       system: `${BASE_RULES}\n\n${system}`,
       prompt,
       output: Output.object({ schema }),
     });
-    return (await result.output) as T;
+    return result.output as T;
   } catch (error) {
     if (NoObjectGeneratedError.isInstance(error) && error.text) {
       const match = error.text.match(/\{[\s\S]*\}/);
